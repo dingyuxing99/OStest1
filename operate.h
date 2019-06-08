@@ -77,31 +77,31 @@ void ReadAll()
 	RoadNode = 0;   //当前目录位置
 	Road[0] = 0;     //文件记录
 }
-//显示当前路径
-void PutOutRoad()
+// 打印当前路径
+// Parameters:
+//		state: FileList[state]指向当前路径
+void PutOutRoad(int state)
 {
-	for (int i = 0; i <= RoadNode; i++)
-	{
-		if (i == 0)
-		{
-			cout << "A:";
-			if (RoadNode == 0)
-				cout << char(92);   //输出"A:\"
-			continue;
-		}
-		cout << char(92);
-		int j = 0;
-		while (FileList[Road[i]].FileName[j] != '\0')
-		{
-			cout << FileList[Road[i]].FileName[j];
-			j++;
-		}
+	int path[30];			// 从根节点FileList[0]到FileList[state]的路径
+	int depth = 0;			// 当前路径深度
+	while (state != 0) {	// 尚未回溯至根节点
+		path[depth++] = state;
+		state = FileList[state].ParentNodeNum;
+	}
+	cout << "A:\\";			// 打印根节点
+	for (int i = depth - 1; i >= 0; i++) {
+		cout << FileList[path[i]].FileName << '\\';
 	}
 	cout << '>';
 }
 //命令分段
-void Interpretation()
+// Parameter:
+//	Command: 待分段的命令，"cp a.txt A:\b.txt"
+// Return:
+//	命令字符串数组对象, ["cp", "a.txt", "A:\b.txt", ""]
+CommandArray Interpretation(char *Command)
 {
+	CommandArray result;
 	int i = 0, j = 0;
 	bool flag = true;
 	j = 0;
@@ -111,13 +111,13 @@ void Interpretation()
 			break;
 		else if (Command[i] != ' ')
 		{
-			First[j] = Command[i];   //命令
+			result.First[j] = Command[i];   //命令
 			j++;
 			flag = false;
 		}
 		i++;
 	}
-	First[j] = '\0';
+	result.First[j] = '\0';
 	flag = true;
 	j = 0;
 	while (true)
@@ -126,13 +126,13 @@ void Interpretation()
 			break;
 		else if (Command[i] != ' ')
 		{
-			Second[j] = Command[i];    //命令的第一个参数
+			result.Second[j] = Command[i];    //命令的第一个参数
 			j++;
 			flag = false;
 		}
 		i++;
 	}
-	Second[j] = '\0';
+	result.Second[j] = '\0';
 	flag = true;
 	j = 0;
 	while (true)
@@ -141,13 +141,13 @@ void Interpretation()
 			break;
 		else if (Command[i] != ' ')
 		{
-			Third[j] = Command[i];   //命令的第二个参数
+			result.Third[j] = Command[i];   //命令的第二个参数
 			j++;
 			flag = false;
 		}
 		i++;
 	}
-	Third[j] = '\0';
+	result.Third[j] = '\0';
 	j = 0;
 	while (true)
 	{
@@ -155,42 +155,48 @@ void Interpretation()
 			break;
 		else
 		{
-			Other[j] = Command[i];     //命令的第三个参数
+			result.Other[j] = Command[i];     //命令的第三个参数
 			j++;
 		}
 		i++;
 	}
-	Other[j] = '\0';
+	result.Other[j] = '\0';
+	return result;
 }
-
-void Commands()
+// 分发命令
+void Commands(const CommandArray &commands)
 {
-	if (strcmp(First, "") == 0)return;
-	else if (strcmp(First, "attrib") == 0)Attrib();
-	else if (strcmp(First, "cd") == 0)Cd();
-	else if (strcmp(First, "copy") == 0)Copy();
-	else if (strcmp(First, "xcopy") == 0)XCopy();
-	else if (strcmp(First, "del") == 0)Del();
-	else if (strcmp(First, "dir") == 0)Dir();
-	else if (strcmp(First, "exit") == 0)Exit();
-	else if (strcmp(First, "format") == 0)Format();
-	else if (strcmp(First, "find") == 0)Find();
-	else if (strcmp(First, "help") == 0)Help();
-	else if (strcmp(First, "mk") == 0)Mk();
-	else if (strcmp(First, "mkdir") == 0)Mkdir();
-	else if (strcmp(First, "more") == 0)More();
-	else if (strcmp(First, "move") == 0)Move();
-	else if (strcmp(First, "rmdir") == 0)Rmdir();
-	else if (strcmp(First, "time") == 0) Time();
-	else if (strcmp(First, "ver") == 0)Ver();
-	else if (strcmp(First, "import") == 0)Import();
-	else if (strcmp(First, "export") == 0)Export();
+	if (strcmp(commands.First, "") == 0)return;
+	else if (strcmp(commands.First, "attrib") == 0)Attrib(commands.Second, commands.Third);
+	else if (strcmp(commands.First, "cd") == 0)Cd();
+	else if (strcmp(commands.First, "copy") == 0)Copy();
+	else if (strcmp(commands.First, "xcopy") == 0)XCopy();
+	else if (strcmp(commands.First, "del") == 0)Del();
+	else if (strcmp(commands.First, "dir") == 0)Dir();
+	else if (strcmp(commands.First, "exit") == 0)Exit();
+	else if (strcmp(commands.First, "format") == 0)Format();
+	else if (strcmp(commands.First, "find") == 0)Find();
+	else if (strcmp(commands.First, "help") == 0)Help();
+	else if (strcmp(commands.First, "mk") == 0)Mk();
+	else if (strcmp(commands.First, "mkdir") == 0)Mkdir();
+	else if (strcmp(commands.First, "more") == 0)More();
+	else if (strcmp(commands.First, "move") == 0)Move();
+	else if (strcmp(commands.First, "rmdir") == 0)Rmdir();
+	else if (strcmp(commands.First, "time") == 0) Time();
+	else if (strcmp(commands.First, "ver") == 0)Ver();
+	else if (strcmp(commands.First, "import") == 0)Import();
+	else if (strcmp(commands.First, "export") == 0)Export();
 	else
-		cout << "‘" << First << "’不是内部命令，也不是可运行的程序或批处理文件" << endl;
+		cout << "‘" << commands.First << "’不是内部命令，也不是可运行的程序或批处理文件" << endl;
 	cout << endl;
 }
 //判断路径
-int DistinguishRoad(char* a)
+// return:
+//	-1: 错误路径
+//  0: 目录的绝对路径
+//	1: 文件的绝对路径
+//	2: 目录或文件的一级相对路径（多级相对路径未做处理）
+int DistinguishRoad(const char* a)
 {
 	int i, j;
 	char c[30];

@@ -29,6 +29,10 @@ struct BlockNode									//分区
 	int next;										//同一文件内容的下一个分区号，如果没有为-1
 	char content[200];								//文本文件的内容
 };
+struct CommandArray									// cmd命令字符串数组
+{
+	char First[30], Second[30], Third[30], Other[30];
+};
 
 FileNode FileList[FileNode_Num];					//目录项
 BlockNode BlockList[Block_Num];						//磁盘分区数组
@@ -45,7 +49,7 @@ char Other[100];									//命令的其余部分
 
 void CreateDisk(char *A);							//创建固定大小的磁盘
 void Commands();									//根据命令选择相关的命令处理函数
-void PutOutRoad();									//输出路径
+void PutOutRoad(int state);							//输出路径
 void Initial();										//格式化
 void ReadAll();										//读取所有的信息，初始化相关变量
 void WriteFileNode(int);							//将指定的文件结点写入磁盘

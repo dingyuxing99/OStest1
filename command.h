@@ -1,7 +1,7 @@
 #include "head.h"
 #include<cstring>
 //显示文本文件的属性
-void Attrib()
+char* Attrib(int state, const char *Second, const char *Third)
 {
 	if (strcmp(Second, "") == 0 || strcmp(Second, "") != 0 && strcmp(Third, "") != 0)
 	{
@@ -22,9 +22,9 @@ void Attrib()
 	int filenodenum, blocknum;
 	if (nowvacation == 1)   //是文本文件
 		filenodenum = InputRoad[InputRoadNode];
-	if (nowvacation == 2)   //是路径
+	if (nowvacation == 2)   //是相对路径
 	{
-		filenodenum = FileList[Road[RoadNode]].ChildNodeNum;
+		filenodenum = FileList[state].ChildNodeNum;
 		while (filenodenum != -1)
 		{
 			if (strcmp(FileList[filenodenum].FileName, Second) == 0 && FileList[filenodenum].FileType == 2)
@@ -37,11 +37,11 @@ void Attrib()
 			return;
 		}
 	}
-	cout << "文件名称:" << FileList[filenodenum].FileName << endl;
 	blocknum = FileList[filenodenum].BlockNum;
 	int len = strlen(BlockList[blocknum].content);
-	cout << "字符串长度:" << len <<endl;
-	cout << "文件类型:" << "文本文件" << endl;
+	char result[256];
+	sprintf(result, "文件名称:%s\n字符串长度:%d\n文件类型: 文本文件", FileList[filenodenum].FileName, len);
+	return result;
 }
 //打开文件
 void Cd()
