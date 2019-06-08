@@ -164,10 +164,13 @@ CommandArray Interpretation(char *Command)
 	return result;
 }
 // 分发命令
-void Commands(const CommandArray &commands)
+// Parameter:
+//	commands: 命令字符串数组
+//	state: 当前路径
+void Commands(const CommandArray &commands, const int state)
 {
 	if (strcmp(commands.First, "") == 0)return;
-	else if (strcmp(commands.First, "attrib") == 0)Attrib(commands.Second, commands.Third);
+	else if (strcmp(commands.First, "attrib") == 0)Attrib(state, commands.Second, commands.Third);
 	else if (strcmp(commands.First, "cd") == 0)Cd();
 	else if (strcmp(commands.First, "copy") == 0)Copy();
 	else if (strcmp(commands.First, "xcopy") == 0)XCopy();
@@ -191,64 +194,53 @@ void Commands(const CommandArray &commands)
 	cout << endl;
 }
 //判断路径
+// Parameter:
+//	state: 当前路径
+//	a: 输入的绝对路径或相对路径
 // return:
-//	-1: 错误路径
-//  0: 目录的绝对路径
-//	1: 文件的绝对路径
-//	2: 目录或文件的一级相对路径（多级相对路径未做处理）
-int DistinguishRoad(const char* a)
+//	输入的路径的在FileList中的节点
+int DistinguishRoad(const int state, const char* a)
 {
-	int i, j;
-	char c[30];
-	if ((a[0] == 'a' || a[0] == 'A') && a[1] == ':'&&a[2] == 92)   //"A:\"
+	int i = 0, j = 0, path = 0;			// path: 解析中的路径，初始路径为根节点
+	char c[30];		// 单目录/文件字符串
+	// 首先判断是绝对路径还是相对路径
+	if ((a[0] == 'a' || a[0] == 'A') && a[1] == ':'&&a[2] == 92)   //"A:\"，说明是绝对路径
 	{
-		InputRoad[0] = 0;    //输入记录
-		InputRoadNode = 0;   //当前位置
+		path = 0;			// 从根目录开始
 		i = 3;
-		while (a[i] != '\0')
-		{
-			j = 0;
-			while (a[i] != 92 && a[i] != '\0')
-			{
-				c[j] = a[i];
-				i++;
-				j++;
-			}
-			c[j] = '\0';
-			j = FileList[InputRoad[InputRoadNode]].ChildNodeNum;  //j为A的孩子结点
-			while (c[0] != '\0'&&j != -1)
-			{
-				if (strcmp(FileList[j].FileName, c) == 0)   //如果A孩子结点的文件名与输入的路径名相同
-				{
-					InputRoad[++InputRoadNode] = j;      //当前位置加1，文件记录变为孩子结点
-					break;
-				}
-				j = FileList[j].BrotherNodeNum;   //否则j为A的同级文件
-			}
-			if (j == -1)
-			{
-				InputRoadNode = 0;   //回到A，说明路径名不对
-				return -1;
-			}
-			if (c[0] == '\0')
-				i++;
-		}
-		if (FileList[InputRoad[InputRoadNode]].FileType == 1)
-			return 0;      //目录结点
-		else
-			return 1;      //不是目录结点
 	}
 	else
 	{
+		path = state;		// 从当前目录开始
 		i = 0;
-		while (a[i] != '\0')
-		{
-			if (a[i] == 92)
-				return -1;    //路径不对
-			i++;
-		}
-		return 2;
 	}
+	while (a[i] != '\0')
+	{
+		path = 0;
+		while (a[i] != 92 && a[i] != '\0')
+		{
+			c[j] = a[i];
+			i++;
+			j++;
+		}
+		c[j] = '\0';
+		path = FileList[path].ChildNodeNum;  //j为A的孩子结点
+		while (c[0] != '\0'&& path != -1)
+		{
+			if (strcmp(FileList[path].FileName, c) == 0)   //如果A孩子结点的文件名与输入的路径名相同
+			{
+				break;
+			}
+			path = FileList[path].BrotherNodeNum;   //否则j为A的同级文件
+		}
+		if (path == -1)
+		{
+			return -1;
+		}
+		if (c[0] == '\0')
+			i++;
+	}
+	return path;
 }
 //创建文件
 int ApplyFileNode()

@@ -1,7 +1,7 @@
 #include "head.h"
 #include<cstring>
 //显示文本文件的属性
-char* Attrib(int state, const char *Second, const char *Third)
+char* Attrib(const int state, const char *Second, const char *Third)
 {
 	if (strcmp(Second, "") == 0 || strcmp(Second, "") != 0 && strcmp(Third, "") != 0)
 	{
