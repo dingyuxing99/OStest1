@@ -99,7 +99,7 @@ void PutOutRoad(int state)
 //	Command: 待分段的命令，"cp a.txt A:\b.txt"
 // Return:
 //	命令字符串数组对象, ["cp", "a.txt", "A:\b.txt", ""]
-CommandArray Interpretation(char *Command)
+CommandArray Interpretation(const char *Command)
 {
 	CommandArray result;
 	int i = 0, j = 0;
@@ -167,7 +167,7 @@ CommandArray Interpretation(char *Command)
 // Parameter:
 //	commands: 命令字符串数组
 //	state: 当前路径
-void Commands(const CommandArray &commands, const int state)
+void Commands(const CommandArray &commands, int state)
 {
 	if (strcmp(commands.First, "") == 0)return;
 	else if (strcmp(commands.First, "attrib") == 0)Attrib(state, commands.Second, commands.Third);
@@ -199,7 +199,7 @@ void Commands(const CommandArray &commands, const int state)
 //	a: 输入的绝对路径或相对路径
 // return:
 //	输入的路径的在FileList中的节点
-int DistinguishRoad(const int state, const char* a)
+int DistinguishRoad(int state, const char* a)
 {
 	int i = 0, j = 0, path = 0;			// path: 解析中的路径，初始路径为根节点
 	char c[30];		// 单目录/文件字符串
