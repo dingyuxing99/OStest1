@@ -73,49 +73,36 @@ CommandResult Cd(int state, const char *Second, const char* Third)
 	}
 }
 //复制文件
-void Copy()
+CommandResult Copy(int state, const char *Second, const char *Third, const char *Other)
 {
+	CommandResult result;
+	result.state = state;
 	if (!(strcmp(Second, "") != 0 && strcmp(Third, "") != 0) || strcmp(Other, "") != 0)
 	{
-		cout << "您输入的命令格式不正确，具体可以使用help命令查看" << endl;
-		return;
+		sprintf(result.output, "您输入的命令格式不正确，具体可以使用help命令查看\n");
+		return result;
 	}
-	int secondfile = DistinguishRoad(Second);
-	if (!((secondfile == 1 || secondfile == 2) && DistinguishRoad(Third) == 0))
+	int from = DistinguishRoad(state, Second), to = DistinguishRoad(state, Third);
+	if (from == -1)
 	{
-		cout << "您输入的命令格式不正确，具体可以使用help命令查看" << endl;
-		return;
+		sprintf(result.output, "您输入的源文件路径不正确\n");
+		return result;
 	}
-	int from, to;
-	if (DistinguishRoad(Second) == 1)
-		from = InputRoad[InputRoadNode];   //记录当前文件
-	if (DistinguishRoad(Second) == 2)
+	if (to == -1)
 	{
-		from = FileList[Road[RoadNode]].ChildNodeNum;   //记录子文件结点
-		while (from != -1)
-		{
-			if (FileList[from].FileType == 2 && strcmp(FileList[from].FileName, Second) == 0)
-				break;
-			from = FileList[from].BrotherNodeNum;
-		}
-		if (from == -1)
-		{
-			cout << "您输入的源文件路径不正确" << endl;
-			return;
-		}
+		sprintf(result.output, "您输入的目标路径不正确\n");
+		return result;
 	}
-	DistinguishRoad(Third);
-	to = InputRoad[InputRoadNode];
 	if (FileList[from].ParentNodeNum == to)   //文件已经存在于目标路径中
 	{
-		cout << "不能将文件复制到其所在目录\n";
-		return;
+		sprintf(result.output, "不能将文件复制到其所在目录\n");
+		return result;
 	}
 	int newnode = ApplyFileNode();    //新建一个空文件结点值
 	if (newnode == -1)
 	{
-		cout << "磁盘已满，不能复制\n";
-		return;
+		sprintf(result.output, "磁盘已满，不能复制\n");
+		return result;
 	}
 	int i;
 	for (i = 0; i<12; i++)
@@ -130,12 +117,12 @@ void Copy()
 	WriteFileNode(newnode);													 //将新建的文件写入磁盘
 	if (FileList[newnode].BlockNum == -1)
 	{
-		cout << "磁盘已满，文件内容无法复制\n";
-		return;
+		sprintf(result.output, "磁盘已满，文件内容无法复制\n");
+		return result;
 	}
 	int blocknum1 = FileList[from].BlockNum;
 	int blocknum2 = FileList[newnode].BlockNum;
-	while (blocknum1 != -1)		//磁盘没有满
+	while (blocknum1 != -1)		//遍历源文件在磁盘上的内容块
 	{
 		i = 0;
 		while (i<55 && BlockList[blocknum1].content[i] != '\0')    //复制文件内容
@@ -145,7 +132,7 @@ void Copy()
 		}
 		if (i<55)
 		{
-			cout << "文件复制完成\n";
+			sprintf(result.output, "文件复制完成\n");
 			WriteBlock(blocknum2);   //写入磁盘
 			return;
 		}
@@ -153,13 +140,14 @@ void Copy()
 		BlockList[blocknum2].next = ApplyBlock();				//申请下一个分区
 		if (BlockList[blocknum2].next == -1)					//如果申请不到
 		{
-			cout << "磁盘空间不足，部分内容以复制\n";
+			sprintf(result.output, "磁盘空间不足，部分内容已复制\n");
 			return;
 		}
 		WriteBlock(blocknum2);									//申请到了，将新分区写入磁盘
 		blocknum1 = BlockList[blocknum1].next;					//当前分区位置后移
 		blocknum2 = BlockList[blocknum2].next;
 	}
+	return result;
 }
 //复制文件及目录
 void XCopy() 
