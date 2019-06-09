@@ -3,21 +3,23 @@
 //显示文本文件的属性
 CommandResult Attrib(int state, const char *Second, const char *Third)
 {
+	CommandResult result;
+	result.state = state;
 	if (strcmp(Second, "") == 0 || strcmp(Second, "") != 0 && strcmp(Third, "") != 0)
 	{
-		cout << "您输入的命令格式不正确，具体可以使用help命令查看" << endl;
-		return;
+		sprintf(result.output, "您输入的命令格式不正确，具体可以使用help命令查看\n");
+		return result;
 	}
 	int nowvacation = DistinguishRoad(state, Second);
 	if (nowvacation == -1)
 	{
-		cout << "您输入的路径或文件名不正确" << endl;
-		return;
+		sprintf(result.output, "您输入的路径或文件名不正确\n");
+		return result;
 	}
 	if (nowvacation == 0)
 	{
-		cout << "您输入的路径终端不是文本文件" << endl;
-		return;
+		sprintf(result.output, "您输入的路径终端不是文本文件\n");
+		return result;
 	}
 	int filenodenum, blocknum;
 	if (nowvacation == 1)   //是文本文件
@@ -33,14 +35,12 @@ CommandResult Attrib(int state, const char *Second, const char *Third)
 		}
 		if (filenodenum == -1)
 		{
-			cout << "该目录下没有名为‘" << Second << "’的文本文件\n";
-			return;
+			sprintf(result.output, "该目录下没有名为‘%s’的文本文件\n", Second);
+			return result;
 		}
 	}
 	blocknum = FileList[filenodenum].BlockNum;
 	int len = strlen(BlockList[blocknum].content);
-	CommandResult result;
-	result.state = state;
 	sprintf(result.output, "文件名称:%s\n字符串长度:%d\n文件类型: 文本文件\n", FileList[filenodenum].FileName, len);
 	return result;
 }
@@ -150,14 +150,16 @@ CommandResult Copy(int state, const char *Second, const char *Third, const char 
 	return result;
 }
 //复制文件及目录
-void XCopy() 
+CommandResult XCopy(int state, const char *Second, const char *Third, const char *Other)
 {
+	CommandResult result;
+	result.state = state;
 	if (!(strcmp(Second, "") != 0 && strcmp(Third, "") != 0) || strcmp(Other, "") != 0)
 	{
 		cout << "您输入的命令格式不正确，具体可以使用help命令查看" << endl;
 		return;
 	}
-	int secondfile = DistinguishRoad(Second);
+	int from = DistinguishRoad(state, Second), to = DistinguishRoad(state, Third);
 	if (!((secondfile == 1 || secondfile == 0 || secondfile == 2) && DistinguishRoad(Third) == 0))
 	{
 		cout << "您输入的命令格式不正确，具体可以使用help命令查看" << endl;
