@@ -41,53 +41,35 @@ CommandResult Attrib(int state, const char *Second, const char *Third)
 	int len = strlen(BlockList[blocknum].content);
 	CommandResult result;
 	result.state = state;
-	sprintf(result.output, "文件名称:%s\n字符串长度:%d\n文件类型: 文本文件", FileList[filenodenum].FileName, len);
+	sprintf(result.output, "文件名称:%s\n字符串长度:%d\n文件类型: 文本文件\n", FileList[filenodenum].FileName, len);
 	return result;
 }
 //打开文件
 CommandResult Cd(int state, const char *Second, const char* Third)
 {
+	CommandResult result;
 	if (strcmp(Second, "") == 0 || strcmp(Second, "") != 0 && strcmp(Third, "") != 0)
 	{
-		cout << "您输入的命令格式不正确，具体可以使用help命令查看" << endl;
-		return;
+		result.state = state;
+		sprintf(result.output, "您输入的命令格式不正确，具体可以使用help命令查看\n");
+		return result;
 	}
-	if (strcmp(Second, "..") == 0)  //如果输入的是进入某个文件后输入 cd .. 则返回到上一层
-	{
-		if (RoadNode > 0)
-			RoadNode--;
+	int destination = DistinguishRoad(state, Second);
+	if (destination == -1) {							// 路径不存在
+		result.state = state;
+		sprintf(result.output, "系统找不到指定路径\n");
+		return result;
 	}
-	int distination = DistinguishRoad(state, Second);
-	if (distination == -1)
-		cout << "系统找不到指定路径" << endl;
-	else if (distination == 0)     //是目录文件，进入到目录文件中
+	else if (FileList[destination].FileType != 1)     // 不是目录文件
 	{
-		for (RoadNode = 0; RoadNode <= InputRoadNode; RoadNode++)
-			Road[RoadNode] = InputRoad[RoadNode];
-		RoadNode--;
+		result.state = state;
+		sprintf(result.output, "您输入的路径终端不是文件夹\n");
+		return result;
 	}
-	else if (DistinguishRoad(Second) == 1)     //不是目录文件，不可进入
+	else											// 是目录文件
 	{
-		cout << "您输入的路径终端不是文件夹" << endl;
-		return;
-	}
-	else
-	{
-		
-		else
-		{
-			int i = FileList[Road[RoadNode]].ChildNodeNum;   //i为当前目录的子目录
-			while (i != -1)
-			{
-				if (FileList[i].FileType == 1 && strcmp(FileList[i].FileName, Second) == 0)
-				{
-					Road[++RoadNode] = i;    //是目录文件且名字输入正确，文件记录加1
-					return;
-				}
-				i = FileList[i].BrotherNodeNum;  //否则文件记录为同级文件
-			}
-			cout << "系统找不到指定路径" << Second << endl;
-		}
+		result.state = destination;
+		return result;
 	}
 }
 //复制文件
