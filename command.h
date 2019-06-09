@@ -1,14 +1,14 @@
 #include "head.h"
 #include<cstring>
 //显示文本文件的属性
-void Attrib()
+CommandResult Attrib(int state, const char *Second, const char *Third)
 {
 	if (strcmp(Second, "") == 0 || strcmp(Second, "") != 0 && strcmp(Third, "") != 0)
 	{
 		cout << "您输入的命令格式不正确，具体可以使用help命令查看" << endl;
 		return;
 	}
-	int nowvacation = DistinguishRoad(Second);
+	int nowvacation = DistinguishRoad(state, Second);
 	if (nowvacation == -1)
 	{
 		cout << "您输入的路径或文件名不正确" << endl;
@@ -22,9 +22,9 @@ void Attrib()
 	int filenodenum, blocknum;
 	if (nowvacation == 1)   //是文本文件
 		filenodenum = InputRoad[InputRoadNode];
-	if (nowvacation == 2)   //是路径
+	if (nowvacation == 2)   //是相对路径
 	{
-		filenodenum = FileList[Road[RoadNode]].ChildNodeNum;
+		filenodenum = FileList[state].ChildNodeNum;
 		while (filenodenum != -1)
 		{
 			if (strcmp(FileList[filenodenum].FileName, Second) == 0 && FileList[filenodenum].FileType == 2)
@@ -37,100 +37,72 @@ void Attrib()
 			return;
 		}
 	}
-	cout << "文件名称:" << FileList[filenodenum].FileName << endl;
 	blocknum = FileList[filenodenum].BlockNum;
 	int len = strlen(BlockList[blocknum].content);
-	cout << "字符串长度:" << len <<endl;
-	cout << "文件类型:" << "文本文件" << endl;
+	CommandResult result;
+	result.state = state;
+	sprintf(result.output, "文件名称:%s\n字符串长度:%d\n文件类型: 文本文件\n", FileList[filenodenum].FileName, len);
+	return result;
 }
 //打开文件
-void Cd()
+CommandResult Cd(int state, const char *Second, const char* Third)
 {
+	CommandResult result;
 	if (strcmp(Second, "") == 0 || strcmp(Second, "") != 0 && strcmp(Third, "") != 0)
 	{
-		cout << "您输入的命令格式不正确，具体可以使用help命令查看" << endl;
-		return;
+		result.state = state;
+		sprintf(result.output, "您输入的命令格式不正确，具体可以使用help命令查看\n");
+		return result;
 	}
-	if (DistinguishRoad(Second) == -1)
-		cout << "系统找不到指定路径" << endl;
-	else if (DistinguishRoad(Second) == 0)     //是目录文件，进入到目录文件中
-	{
-		for (RoadNode = 0; RoadNode <= InputRoadNode; RoadNode++)
-			Road[RoadNode] = InputRoad[RoadNode];
-		RoadNode--;
+	int destination = DistinguishRoad(state, Second);
+	if (destination == -1) {							// 路径不存在
+		result.state = state;
+		sprintf(result.output, "系统找不到指定路径\n");
+		return result;
 	}
-	else if (DistinguishRoad(Second) == 1)     //不是目录文件，不可进入
+	else if (FileList[destination].FileType != 1)     // 不是目录文件
 	{
-		cout << "您输入的路径终端不是文件夹" << endl;
-		return;
+		result.state = state;
+		sprintf(result.output, "您输入的路径终端不是文件夹\n");
+		return result;
 	}
-	else
+	else											// 是目录文件
 	{
-		if (strcmp(Second, "..") == 0)  //如果输入的是进入某个文件后输入 cd .. 则返回到上一层
-		{
-			if (RoadNode>0)
-				RoadNode--;
-		}
-		else
-		{
-			int i = FileList[Road[RoadNode]].ChildNodeNum;   //i为当前目录的子目录
-			while (i != -1)
-			{
-				if (FileList[i].FileType == 1 && strcmp(FileList[i].FileName, Second) == 0)
-				{
-					Road[++RoadNode] = i;    //是目录文件且名字输入正确，文件记录加1
-					return;
-				}
-				i = FileList[i].BrotherNodeNum;  //否则文件记录为同级文件
-			}
-			cout << "系统找不到指定路径" << Second << endl;
-		}
+		result.state = destination;
+		return result;
 	}
 }
 //复制文件
-void Copy()
+CommandResult Copy(int state, const char *Second, const char *Third, const char *Other)
 {
+	CommandResult result;
+	result.state = state;
 	if (!(strcmp(Second, "") != 0 && strcmp(Third, "") != 0) || strcmp(Other, "") != 0)
 	{
-		cout << "您输入的命令格式不正确，具体可以使用help命令查看" << endl;
-		return;
+		sprintf(result.output, "您输入的命令格式不正确，具体可以使用help命令查看\n");
+		return result;
 	}
-	int secondfile = DistinguishRoad(Second);
-	if (!((secondfile == 1 || secondfile == 2) && DistinguishRoad(Third) == 0))
+	int from = DistinguishRoad(state, Second), to = DistinguishRoad(state, Third);
+	if (from == -1)
 	{
-		cout << "您输入的命令格式不正确，具体可以使用help命令查看" << endl;
-		return;
+		sprintf(result.output, "您输入的源文件路径不正确\n");
+		return result;
 	}
-	int from, to;
-	if (DistinguishRoad(Second) == 1)
-		from = InputRoad[InputRoadNode];   //记录当前文件
-	if (DistinguishRoad(Second) == 2)
+	if (to == -1)
 	{
-		from = FileList[Road[RoadNode]].ChildNodeNum;   //记录子文件结点
-		while (from != -1)
-		{
-			if (FileList[from].FileType == 2 && strcmp(FileList[from].FileName, Second) == 0)
-				break;
-			from = FileList[from].BrotherNodeNum;
-		}
-		if (from == -1)
-		{
-			cout << "您输入的源文件路径不正确" << endl;
-			return;
-		}
+		sprintf(result.output, "您输入的目标路径不正确\n");
+		return result;
 	}
-	DistinguishRoad(Third);
-	to = InputRoad[InputRoadNode];
 	if (FileList[from].ParentNodeNum == to)   //文件已经存在于目标路径中
 	{
-		cout << "不能将文件复制到其所在目录\n";
-		return;
+		sprintf(result.output, "不能将文件复制到其所在目录\n");
+		return result;
 	}
 	int newnode = ApplyFileNode();    //新建一个空文件结点值
 	if (newnode == -1)
 	{
-		cout << "磁盘已满，不能复制\n";
-		return;
+		sprintf(result.output, "磁盘已满，不能复制\n");
+		return result;
 	}
 	int i;
 	for (i = 0; i<12; i++)
@@ -145,12 +117,12 @@ void Copy()
 	WriteFileNode(newnode);													 //将新建的文件写入磁盘
 	if (FileList[newnode].BlockNum == -1)
 	{
-		cout << "磁盘已满，文件内容无法复制\n";
-		return;
+		sprintf(result.output, "磁盘已满，文件内容无法复制\n");
+		return result;
 	}
 	int blocknum1 = FileList[from].BlockNum;
 	int blocknum2 = FileList[newnode].BlockNum;
-	while (blocknum1 != -1)		//磁盘没有满
+	while (blocknum1 != -1)		//遍历源文件在磁盘上的内容块
 	{
 		i = 0;
 		while (i<55 && BlockList[blocknum1].content[i] != '\0')    //复制文件内容
@@ -160,7 +132,7 @@ void Copy()
 		}
 		if (i<55)
 		{
-			cout << "文件复制完成\n";
+			sprintf(result.output, "文件复制完成\n");
 			WriteBlock(blocknum2);   //写入磁盘
 			return;
 		}
@@ -168,13 +140,14 @@ void Copy()
 		BlockList[blocknum2].next = ApplyBlock();				//申请下一个分区
 		if (BlockList[blocknum2].next == -1)					//如果申请不到
 		{
-			cout << "磁盘空间不足，部分内容以复制\n";
+			sprintf(result.output, "磁盘空间不足，部分内容已复制\n");
 			return;
 		}
 		WriteBlock(blocknum2);									//申请到了，将新分区写入磁盘
 		blocknum1 = BlockList[blocknum1].next;					//当前分区位置后移
 		blocknum2 = BlockList[blocknum2].next;
 	}
+	return result;
 }
 //复制文件及目录
 void XCopy() 

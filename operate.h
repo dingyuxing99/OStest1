@@ -77,31 +77,31 @@ void ReadAll()
 	RoadNode = 0;   //当前目录位置
 	Road[0] = 0;     //文件记录
 }
-//显示当前路径
-void PutOutRoad()
+// 打印当前路径
+// Parameters:
+//		state: FileList[state]指向当前路径
+void PutOutRoad(int state)
 {
-	for (int i = 0; i <= RoadNode; i++)
-	{
-		if (i == 0)
-		{
-			cout << "A:";
-			if (RoadNode == 0)
-				cout << char(92);   //输出"A:\"
-			continue;
-		}
-		cout << char(92);
-		int j = 0;
-		while (FileList[Road[i]].FileName[j] != '\0')
-		{
-			cout << FileList[Road[i]].FileName[j];
-			j++;
-		}
+	int path[30];			// 从根节点FileList[0]到FileList[state]的路径
+	int depth = 0;			// 当前路径深度
+	while (state != 0) {	// 尚未回溯至根节点
+		path[depth++] = state;
+		state = FileList[state].ParentNodeNum;
+	}
+	cout << "A:\\";			// 打印根节点
+	for (int i = depth - 1; i >= 0; i++) {
+		cout << FileList[path[i]].FileName << '\\';
 	}
 	cout << '>';
 }
 //命令分段
-void Interpretation()
+// Parameter:
+//	Command: 待分段的命令，"cp a.txt A:\b.txt"
+// Return:
+//	命令字符串数组对象, ["cp", "a.txt", "A:\b.txt", ""]
+CommandArray Interpretation(const char *Command)
 {
+	CommandArray result;
 	int i = 0, j = 0;
 	bool flag = true;
 	j = 0;
@@ -111,13 +111,13 @@ void Interpretation()
 			break;
 		else if (Command[i] != ' ')
 		{
-			First[j] = Command[i];   //命令
+			result.First[j] = Command[i];   //命令
 			j++;
 			flag = false;
 		}
 		i++;
 	}
-	First[j] = '\0';
+	result.First[j] = '\0';
 	flag = true;
 	j = 0;
 	while (true)
@@ -126,13 +126,13 @@ void Interpretation()
 			break;
 		else if (Command[i] != ' ')
 		{
-			Second[j] = Command[i];    //命令的第一个参数
+			result.Second[j] = Command[i];    //命令的第一个参数
 			j++;
 			flag = false;
 		}
 		i++;
 	}
-	Second[j] = '\0';
+	result.Second[j] = '\0';
 	flag = true;
 	j = 0;
 	while (true)
@@ -141,13 +141,13 @@ void Interpretation()
 			break;
 		else if (Command[i] != ' ')
 		{
-			Third[j] = Command[i];   //命令的第二个参数
+			result.Third[j] = Command[i];   //命令的第二个参数
 			j++;
 			flag = false;
 		}
 		i++;
 	}
-	Third[j] = '\0';
+	result.Third[j] = '\0';
 	j = 0;
 	while (true)
 	{
@@ -155,94 +155,96 @@ void Interpretation()
 			break;
 		else
 		{
-			Other[j] = Command[i];     //命令的第三个参数
+			result.Other[j] = Command[i];     //命令的第三个参数
 			j++;
 		}
 		i++;
 	}
-	Other[j] = '\0';
+	result.Other[j] = '\0';
+	return result;
 }
-
-void Commands()
+// 分发命令
+// Parameter:
+//	commands: 命令字符串数组
+//	state: 当前路径
+void Commands(const CommandArray &commands, int state)
 {
-	if (strcmp(First, "") == 0)return;
-	else if (strcmp(First, "attrib") == 0)Attrib();
-	else if (strcmp(First, "cd") == 0)Cd();
-	else if (strcmp(First, "copy") == 0)Copy();
-	else if (strcmp(First, "xcopy") == 0)XCopy();
-	else if (strcmp(First, "del") == 0)Del();
-	else if (strcmp(First, "dir") == 0)Dir();
-	else if (strcmp(First, "exit") == 0)Exit();
-	else if (strcmp(First, "format") == 0)Format();
-	else if (strcmp(First, "find") == 0)Find();
-	else if (strcmp(First, "help") == 0)Help();
-	else if (strcmp(First, "mk") == 0)Mk();
-	else if (strcmp(First, "mkdir") == 0)Mkdir();
-	else if (strcmp(First, "more") == 0)More();
-	else if (strcmp(First, "move") == 0)Move();
-	else if (strcmp(First, "rmdir") == 0)Rmdir();
-	else if (strcmp(First, "time") == 0) Time();
-	else if (strcmp(First, "ver") == 0)Ver();
-	else if (strcmp(First, "import") == 0)Import();
-	else if (strcmp(First, "export") == 0)Export();
+	if (strcmp(commands.First, "") == 0)return;
+	else if (strcmp(commands.First, "attrib") == 0)Attrib(state, commands.Second, commands.Third);
+	else if (strcmp(commands.First, "cd") == 0)Cd();
+	else if (strcmp(commands.First, "copy") == 0)Copy();
+	else if (strcmp(commands.First, "xcopy") == 0)XCopy();
+	else if (strcmp(commands.First, "del") == 0)Del();
+	else if (strcmp(commands.First, "dir") == 0)Dir();
+	else if (strcmp(commands.First, "exit") == 0)Exit();
+	else if (strcmp(commands.First, "format") == 0)Format();
+	else if (strcmp(commands.First, "find") == 0)Find();
+	else if (strcmp(commands.First, "help") == 0)Help();
+	else if (strcmp(commands.First, "mk") == 0)Mk();
+	else if (strcmp(commands.First, "mkdir") == 0)Mkdir();
+	else if (strcmp(commands.First, "more") == 0)More();
+	else if (strcmp(commands.First, "move") == 0)Move();
+	else if (strcmp(commands.First, "rmdir") == 0)Rmdir();
+	else if (strcmp(commands.First, "time") == 0) Time();
+	else if (strcmp(commands.First, "ver") == 0)Ver();
+	else if (strcmp(commands.First, "import") == 0)Import();
+	else if (strcmp(commands.First, "export") == 0)Export();
 	else
-		cout << "‘" << First << "’不是内部命令，也不是可运行的程序或批处理文件" << endl;
+		cout << "‘" << commands.First << "’不是内部命令，也不是可运行的程序或批处理文件" << endl;
 	cout << endl;
 }
 //判断路径
-int DistinguishRoad(char* a)
+// Parameter:
+//	state: 当前路径
+//	a: 输入的绝对路径或相对路径
+// return:
+//	输入的路径的在FileList中的节点
+int DistinguishRoad(int state, const char* a)
 {
-	int i, j;
-	char c[30];
-	if ((a[0] == 'a' || a[0] == 'A') && a[1] == ':'&&a[2] == 92)   //"A:\"
+	int i = 0, j = 0, path = 0;			// path: 解析中的路径，初始路径为根节点
+	char c[30];		// 单目录/文件字符串
+	// 首先判断是绝对路径还是相对路径
+	if ((a[0] == 'a' || a[0] == 'A') && a[1] == ':'&&a[2] == 92)   //"A:\"，说明是绝对路径
 	{
-		InputRoad[0] = 0;    //输入记录
-		InputRoadNode = 0;   //当前位置
+		path = 0;			// 从根目录开始
 		i = 3;
-		while (a[i] != '\0')
-		{
-			j = 0;
-			while (a[i] != 92 && a[i] != '\0')
-			{
-				c[j] = a[i];
-				i++;
-				j++;
-			}
-			c[j] = '\0';
-			j = FileList[InputRoad[InputRoadNode]].ChildNodeNum;  //j为A的孩子结点
-			while (c[0] != '\0'&&j != -1)
-			{
-				if (strcmp(FileList[j].FileName, c) == 0)   //如果A孩子结点的文件名与输入的路径名相同
-				{
-					InputRoad[++InputRoadNode] = j;      //当前位置加1，文件记录变为孩子结点
-					break;
-				}
-				j = FileList[j].BrotherNodeNum;   //否则j为A的同级文件
-			}
-			if (j == -1)
-			{
-				InputRoadNode = 0;   //回到A，说明路径名不对
-				return -1;
-			}
-			if (c[0] == '\0')
-				i++;
-		}
-		if (FileList[InputRoad[InputRoadNode]].FileType == 1)
-			return 0;      //目录结点
-		else
-			return 1;      //不是目录结点
 	}
 	else
 	{
+		path = state;		// 从当前目录开始
 		i = 0;
-		while (a[i] != '\0')
-		{
-			if (a[i] == 92)
-				return -1;    //路径不对
-			i++;
-		}
-		return 2;
 	}
+	while (a[i] != '\0')
+	{
+		path = 0;
+		while (a[i] != 92 && a[i] != '\0')
+		{
+			c[j] = a[i];
+			i++;
+			j++;
+		}
+		c[j] = '\0';
+		path = FileList[path].ChildNodeNum;  //j为A的孩子结点
+		while (c[0] != '\0'&& path != -1)
+		{
+			if (strcmp(c, "..") == 0) {
+				path = FileList[path].ParentNodeNum;
+				break;
+			}
+			if (strcmp(FileList[path].FileName, c) == 0)   //如果A孩子结点的文件名与输入的路径名相同
+			{
+				break;
+			}
+			path = FileList[path].BrotherNodeNum;   //否则j为A的同级文件
+		}
+		if (path == -1)
+		{
+			return -1;
+		}
+		if (c[0] == '\0')
+			i++;
+	}
+	return path;
 }
 //创建文件
 int ApplyFileNode()

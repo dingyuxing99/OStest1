@@ -29,6 +29,15 @@ struct BlockNode									//分区
 	int next;										//同一文件内容的下一个分区号，如果没有为-1
 	char content[200];								//文本文件的内容
 };
+struct CommandArray									// cmd命令字符串数组
+{
+	char First[30], Second[30], Third[30], Other[30];
+};
+struct CommandResult								// cmd返回值
+{
+	int state;										// 执行cmd后当前目录
+	char output[256];								// 输出信息字符串
+};
 
 FileNode FileList[FileNode_Num];					//目录项
 BlockNode BlockList[Block_Num];						//磁盘分区数组
@@ -44,8 +53,8 @@ char Third[100];									//命令的第二个参数
 char Other[100];									//命令的其余部分
 
 void CreateDisk(char *A);							//创建固定大小的磁盘
-void Commands();									//根据命令选择相关的命令处理函数
-void PutOutRoad();									//输出路径
+void Commands(const CommandArray &, int);			//根据命令选择相关的命令处理函数
+void PutOutRoad(int);								//输出路径
 void Initial();										//格式化
 void ReadAll();										//读取所有的信息，初始化相关变量
 void WriteFileNode(int);							//将指定的文件结点写入磁盘
@@ -57,11 +66,11 @@ void FreeFileNode(int);								//释放指定位置的文件结点
 void FreeFileNodes(int);							//释放指定位置的文件结点，若该结点不是终端结点则释放该结点下的所有结点
 void FreeBlock(int);								//释放指定位置的分区
 void FreeBlocks(int);								//释放指定位置的分区，包括该盘块所在文本文件内容的所有分区
-void Interpretation();								//将命令分段
-int DistinguishRoad(char*);							//分析路径
+CommandArray Interpretation(const char*);			//将命令分段
+int DistinguishRoad(int, const char*);				//解析路径
 void DirectoryTo(int, int);                         //找到写入指定文件目录
 
-void Attrib();                                       //显示一个文本文件的属性
+CommandResult Attrib(int, const char*, const char*);         //显示一个文本文件的属性
 void Cd();											 //进入指定文件    
 void Copy();										 //复制文件 
 void XCopy();                                        //复制文件或目录下的所有文件   
