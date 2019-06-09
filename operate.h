@@ -227,6 +227,10 @@ int DistinguishRoad(int state, const char* a)
 		path = FileList[path].ChildNodeNum;  //j为A的孩子结点
 		while (c[0] != '\0'&& path != -1)
 		{
+			if (strcmp(c, "..") == 0) {
+				path = FileList[path].ParentNodeNum;
+				break;
+			}
 			if (strcmp(FileList[path].FileName, c) == 0)   //如果A孩子结点的文件名与输入的路径名相同
 			{
 				break;

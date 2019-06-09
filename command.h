@@ -45,16 +45,22 @@ CommandResult Attrib(int state, const char *Second, const char *Third)
 	return result;
 }
 //打开文件
-void Cd()
+CommandResult Cd(int state, const char *Second, const char* Third)
 {
 	if (strcmp(Second, "") == 0 || strcmp(Second, "") != 0 && strcmp(Third, "") != 0)
 	{
 		cout << "您输入的命令格式不正确，具体可以使用help命令查看" << endl;
 		return;
 	}
-	if (DistinguishRoad(Second) == -1)
+	if (strcmp(Second, "..") == 0)  //如果输入的是进入某个文件后输入 cd .. 则返回到上一层
+	{
+		if (RoadNode > 0)
+			RoadNode--;
+	}
+	int distination = DistinguishRoad(state, Second);
+	if (distination == -1)
 		cout << "系统找不到指定路径" << endl;
-	else if (DistinguishRoad(Second) == 0)     //是目录文件，进入到目录文件中
+	else if (distination == 0)     //是目录文件，进入到目录文件中
 	{
 		for (RoadNode = 0; RoadNode <= InputRoadNode; RoadNode++)
 			Road[RoadNode] = InputRoad[RoadNode];
@@ -67,11 +73,7 @@ void Cd()
 	}
 	else
 	{
-		if (strcmp(Second, "..") == 0)  //如果输入的是进入某个文件后输入 cd .. 则返回到上一层
-		{
-			if (RoadNode>0)
-				RoadNode--;
-		}
+		
 		else
 		{
 			int i = FileList[Road[RoadNode]].ChildNodeNum;   //i为当前目录的子目录
