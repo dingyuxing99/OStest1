@@ -1,14 +1,14 @@
 #include "head.h"
 #include<cstring>
 //显示文本文件的属性
-char* Attrib(int state, const char *Second, const char *Third)
+CommandResult Attrib(int state, const char *Second, const char *Third)
 {
 	if (strcmp(Second, "") == 0 || strcmp(Second, "") != 0 && strcmp(Third, "") != 0)
 	{
 		cout << "您输入的命令格式不正确，具体可以使用help命令查看" << endl;
 		return;
 	}
-	int nowvacation = DistinguishRoad(Second);
+	int nowvacation = DistinguishRoad(state, Second);
 	if (nowvacation == -1)
 	{
 		cout << "您输入的路径或文件名不正确" << endl;
@@ -39,8 +39,9 @@ char* Attrib(int state, const char *Second, const char *Third)
 	}
 	blocknum = FileList[filenodenum].BlockNum;
 	int len = strlen(BlockList[blocknum].content);
-	char result[256];
-	sprintf(result, "文件名称:%s\n字符串长度:%d\n文件类型: 文本文件", FileList[filenodenum].FileName, len);
+	CommandResult result;
+	result.state = state;
+	sprintf(result.output, "文件名称:%s\n字符串长度:%d\n文件类型: 文本文件", FileList[filenodenum].FileName, len);
 	return result;
 }
 //打开文件

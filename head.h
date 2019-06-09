@@ -33,6 +33,11 @@ struct CommandArray									// cmd命令字符串数组
 {
 	char First[30], Second[30], Third[30], Other[30];
 };
+struct CommandResult								// cmd返回值
+{
+	int state;										// 执行cmd后当前目录
+	char output[256];								// 输出信息字符串
+};
 
 FileNode FileList[FileNode_Num];					//目录项
 BlockNode BlockList[Block_Num];						//磁盘分区数组
@@ -65,7 +70,7 @@ CommandArray Interpretation(const char*);			//将命令分段
 int DistinguishRoad(int, const char*);				//解析路径
 void DirectoryTo(int, int);                         //找到写入指定文件目录
 
-char* Attrib(int, const char*, const char*);         //显示一个文本文件的属性
+CommandResult Attrib(int, const char*, const char*);         //显示一个文本文件的属性
 void Cd();											 //进入指定文件    
 void Copy();										 //复制文件 
 void XCopy();                                        //复制文件或目录下的所有文件   
